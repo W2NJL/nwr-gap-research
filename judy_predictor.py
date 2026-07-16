@@ -188,6 +188,16 @@ class JudyPredictor:
             logger.warning("predict() failed: %s", exc)
             return None
 
+    _PREDICT_DEFAULTS = {
+        "antenna_type": "NON",
+        "aant_rotation_deg": 0.0,
+        "hagl": 0.0,
+        "class_flag": "C",
+        "uneven_polarization": 0.0,
+        "amsl": 0.0,
+        "receiver_hagl": 10.0,
+    }
+
     def predict_batch(self, rows: list) -> list:
         """
         Predict field strength for many TX–RX pairs in one model call.
@@ -195,7 +205,8 @@ class JudyPredictor:
         Parameters
         ----------
         rows : list of dicts, each containing the same keyword arguments
-               accepted by predict().
+               accepted by predict(). Optional params use the same defaults
+               as predict() when omitted.
 
         Returns
         -------
@@ -207,7 +218,8 @@ class JudyPredictor:
         arrays, valid_idx = [], []
         for i, kw in enumerate(rows):
             try:
-                arrays.append(self._build_feature_array(**kw)[0])
+                merged = {**self._PREDICT_DEFAULTS, **kw}
+                arrays.append(self._build_feature_array(**merged)[0])
                 valid_idx.append(i)
             except Exception as exc:
                 logger.debug("Row %d skipped: %s", i, exc)
